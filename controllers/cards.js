@@ -54,10 +54,16 @@ const likeCard = (req, res) => {
     { new: true },
   )
     .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Карточка не найдена' });
+      }
       return res.status(200).send(card);
     })
     .catch((err) => {
       console.log(err);
+      if (err instanceof mongoose.Error.CastError) {
+        return res.status(400).send({ message: 'Неверный id' });
+      }
       return res.status(500).send({ message: 'Server Error' });
     });
 };
@@ -70,10 +76,16 @@ const dislikeCard = (req, res) => {
     { new: true },
   )
     .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Карточка не найдена' });
+      }
       return res.status(200).send(card);
     })
     .catch((err) => {
       console.log(err);
+      if (err instanceof mongoose.Error.CastError) {
+        return res.status(400).send({ message: 'Неверный id' });
+      }
       return res.status(500).send({ message: 'Server Error' });
     });
 };
