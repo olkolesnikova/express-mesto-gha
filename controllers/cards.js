@@ -1,12 +1,14 @@
-const Card = require('../models/card');
+// eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
+const Card = require('../models/card');
 
 const getCards = (req, res) => {
   return Card.find({})
-    .then(r => {
+    .then((r) => {
       return res.status(200).send(r);
     })
     .catch((err) => {
+      console.log(err);
       return res.status(500).send({ message: 'Server Error' });
     });
 };
@@ -14,7 +16,7 @@ const getCards = (req, res) => {
 const createCard = (req, res) => {
   const { name, link } = req.body;
   return Card.create({ name, link, owner: req.user._id })
-    .then(r => {
+    .then((r) => {
       return res.status(201).send(r);
     })
     .catch((err) => {
@@ -29,13 +31,17 @@ const createCard = (req, res) => {
 const deleteCardById = (req, res) => {
   const { cardId } = req.params;
   return Card.findByIdAndDelete(cardId)
-    .then(card => {
+    .then((card) => {
       if (!card) {
         return res.status(404).send({ message: 'Карточка не найдена' });
       }
-      res.send(card);
+      return res.status(200).send(card);
     })
     .catch((err) => {
+      console.log(err);
+      if (err instanceof mongoose.Error.CastError) {
+        return res.status(400).send({ message: 'Неверный id' });
+      }
       return res.status(500).send({ message: 'Server Error' });
     });
 };
@@ -45,9 +51,9 @@ const likeCard = (req, res) => {
   return Card.findByIdAndUpdate(
     cardId,
     { $addToSet: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
-    .then(card => {
+    .then((card) => {
       return res.status(200).send(card);
     })
     .catch((err) => {
@@ -63,19 +69,19 @@ const dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then(card => {
+    .then((card) => {
       return res.status(200).send(card);
     })
     .catch((err) => {
       console.log(err);
       return res.status(500).send({ message: 'Server Error' });
     });
-}
+};
 
 module.exports = {
   getCards,
   createCard,
   deleteCardById,
   likeCard,
-  dislikeCard
+  dislikeCard,
 };

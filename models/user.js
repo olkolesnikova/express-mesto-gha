@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -10,6 +11,8 @@ const userSchema = new mongoose.Schema({
   about: {
     type: String,
     required: true,
+    minlength: 2,
+    maxlength: 30,
   },
   avatar: {
     type: String,

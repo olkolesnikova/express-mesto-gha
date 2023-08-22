@@ -1,12 +1,13 @@
-const User = require('../models/user');
+// eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
+const User = require('../models/user');
 
 const getUsers = (req, res) => {
   return User.find({})
-    .then(r => {
+    .then((r) => {
       return res.status(200).send(r);
     })
-    .catch((e) => {
+    .catch(() => {
       return res.status(500).send({ message: 'Server Error' });
     });
 };
@@ -14,7 +15,7 @@ const getUsers = (req, res) => {
 const getUserById = (req, res) => {
   const { userId } = req.params;
   return User.findById(userId)
-    .then(r => {
+    .then((r) => {
       if (r === null) {
         return res.status(404).send({ message: 'Запрашиваемый пользователь не найденм' });
       }
@@ -33,7 +34,7 @@ const createUser = (req, res) => {
   console.log(req.body);
   const { name, about, avatar } = req.body;
   return User.create({ name, about, avatar })
-    .then(r => {
+    .then((r) => {
       res.status(201).send(r);
     })
     .catch((err) => {
@@ -49,9 +50,9 @@ const updateUserInfo = (req, res) => {
   return User.findByIdAndUpdate(req.user._id, { name, about }, {
     new: true,
     runValidators: true,
-    upsert: true
+    upsert: true,
   })
-    .then(r => {
+    .then((r) => {
       res.status(200).send(r);
     })
     .catch((err) => {
@@ -67,9 +68,9 @@ const updateAvatar = (req, res) => {
   return User.findByIdAndUpdate(req.user._id, { avatar }, {
     new: true,
     runValidators: true,
-    upsert: true
+    upsert: true,
   })
-    .then(r => {
+    .then((r) => {
       res.status(200).send(r);
     })
     .catch((err) => {
@@ -85,5 +86,5 @@ module.exports = {
   getUserById,
   createUser,
   updateUserInfo,
-  updateAvatar
+  updateAvatar,
 };
