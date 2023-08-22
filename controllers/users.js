@@ -16,7 +16,7 @@ const getUserById = (req, res) => {
   return User.findById(userId)
     .then(r => {
       if (r === null) {
-        return res.status(404).send({ message: 'Пользователь не найден' });
+        return res.status(404).send({ message: 'Запрашиваемый пользователь не найденм' });
       }
       return res.status(200).send(r);
     })
@@ -44,8 +44,46 @@ const createUser = (req, res) => {
     });
 };
 
+const updateUserInfo = (req, res) => {
+  const { name, about } = req.body;
+  return User.findByIdAndUpdate(req.user._id, { name, about }, {
+    new: true,
+    runValidators: true,
+    upsert: true
+  })
+    .then(r => {
+      res.status(200).send(r);
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        return res.status(400).send({ message: 'Неверные данные' });
+      }
+      return res.status(500).send('Server Error');
+    });
+};
+
+const updateAvatar = (req, res) => {
+  const { avatar } = req.body;
+  return User.findByIdAndUpdate(req.user._id, { avatar }, {
+    new: true,
+    runValidators: true,
+    upsert: true
+  })
+    .then(r => {
+      res.status(200).send(r);
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        return res.status(400).send({ message: 'Неверные данные' });
+      }
+      return res.status(500).send({ message: 'Server Error' });
+    });
+};
+
 module.exports = {
   getUsers,
   getUserById,
   createUser,
+  updateUserInfo,
+  updateAvatar
 };
