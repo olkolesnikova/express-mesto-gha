@@ -15,11 +15,9 @@ const getUsers = (req, res) => {
 const getUserById = (req, res) => {
   const { userId } = req.params;
   return User.findById(userId)
-    .then((r) => {
-      if (r === null) {
-        return res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
-      }
-      return res.status(200).send(r);
+    .orFail(new Error('Неверный Id'))
+    .then((user) => {
+      return res.status(200).send(user);
     })
     .catch((err) => {
       console.log(err);
@@ -50,7 +48,6 @@ const updateUserInfo = (req, res) => {
   return User.findByIdAndUpdate(req.user._id, { name, about }, {
     new: true,
     runValidators: true,
-    upsert: true,
   })
     .then((r) => {
       res.status(200).send(r);
@@ -68,7 +65,6 @@ const updateAvatar = (req, res) => {
   return User.findByIdAndUpdate(req.user._id, { avatar }, {
     new: true,
     runValidators: true,
-    upsert: true,
   })
     .then((r) => {
       res.status(200).send(r);

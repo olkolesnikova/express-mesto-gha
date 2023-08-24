@@ -31,10 +31,8 @@ const createCard = (req, res) => {
 const deleteCardById = (req, res) => {
   const { cardId } = req.params;
   return Card.findByIdAndDelete(cardId)
+    .orFail(new Error('Неверный id'))
     .then((card) => {
-      if (!card) {
-        return res.status(404).send({ message: 'Карточка не найдена' });
-      }
       return res.status(200).send(card);
     })
     .catch((err) => {

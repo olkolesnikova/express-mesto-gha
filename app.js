@@ -1,6 +1,8 @@
 const express = require('express');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const helmet = require('helmet');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
 
@@ -21,6 +23,8 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+
+app.use(helmet());
 
 app.use(userRouter);
 app.use(cardRouter);
