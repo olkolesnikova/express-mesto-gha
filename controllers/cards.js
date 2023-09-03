@@ -1,6 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
 const Card = require('../models/card');
+const NotFoundError = require('../errors/not-found-error');
+const InvalidDataError = require('../errors/invalid-data-error');
 
 const getCards = (req, res) => {
   return Card.find({})
@@ -13,7 +15,7 @@ const getCards = (req, res) => {
     });
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   return Card.create({ name, link, owner: req.user._id })
     .then((r) => {
@@ -22,13 +24,14 @@ const createCard = (req, res) => {
     .catch((err) => {
       console.log(err);
       if (err instanceof mongoose.Error.ValidationError) {
-        return res.status(400).send({ message: 'Неверные данные' });
+        throw new InvalidDataError('Неверные данные');
       }
       return res.status(500).send({ message: 'Server Error' });
-    });
+    })
+    .catch(next);
 };
 
-const deleteCardById = (req, res) => {
+const deleteCardById = (req, res, next) => {
   const { cardId } = req.params;
   return Card.findByIdAndDelete(cardId)
     .orFail(new Error('Неверный id'))
@@ -41,13 +44,14 @@ const deleteCardById = (req, res) => {
     .catch((err) => {
       console.log(err);
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(400).send({ message: 'Неверный id' });
+        throw new InvalidDataError('Неверный id');
       }
       return res.status(500).send({ message: 'Server Error' });
-    });
+    })
+    .catch(next);
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   const { cardId } = req.params;
   return Card.findByIdAndUpdate(
     cardId,
@@ -56,20 +60,21 @@ const likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ message: 'Карточка не найдена' });
+        throw new NotFoundError('Карточка не найдена');
       }
       return res.status(200).send(card);
     })
     .catch((err) => {
       console.log(err);
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(400).send({ message: 'Неверный id' });
+        throw new InvalidDataError('Неверный id');
       }
       return res.status(500).send({ message: 'Server Error' });
-    });
+    })
+    .catch(next);
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   const { cardId } = req.params;
   return Card.findByIdAndUpdate(
     cardId,
@@ -78,7 +83,7 @@ const dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ message: 'Карточка не найдена' });
+        throw new NotFoundError('Карточка не найдена');
       }
       return res.status(200).send(card);
     })
@@ -87,8 +92,9 @@ const dislikeCard = (req, res) => {
       if (err instanceof mongoose.Error.CastError) {
         return res.status(400).send({ message: 'Неверный id' });
       }
-      return res.status(500).send({ message: 'Server Error' });
-    });
+      throw new InvalidDataError('Неверный id');
+    })
+    .catch(next);
 };
 
 module.exports = {

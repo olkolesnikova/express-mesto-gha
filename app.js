@@ -3,11 +3,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
-const cookieParser = require('cookie-parser');
-
-const auth = require('./middlewares/auth');
+const { errors } = require('celebrate');
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useNewUrlParser: true,
@@ -28,6 +27,16 @@ app.use(cardRouter);
 
 app.patch('*', (req, res) => {
   return res.status(404).send({ message: 'Страница не найдена' });
+});
+
+app.use(errors());
+
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+
+  return res.status(statusCode).send({
+    message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
+  });
 });
 
 app.listen(PORT, () => {
