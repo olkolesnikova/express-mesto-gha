@@ -5,6 +5,9 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
+const cookieParser = require('cookie-parser');
+
+const auth = require('./middlewares/auth');
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useNewUrlParser: true,
@@ -14,15 +17,9 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 const app = express();
 const { PORT = 3000 } = process.env;
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '64e3b8431c9296f4cf080422',
-  };
-
-  next();
-});
-
 app.use(express.json());
+
+app.use(cookieParser());
 
 app.use(helmet());
 

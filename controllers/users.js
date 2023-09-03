@@ -1,5 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
 const User = require('../models/user');
 
 const getUsers = (req, res) => {
@@ -30,16 +33,27 @@ const getUserById = (req, res) => {
 
 const createUser = (req, res) => {
   console.log(req.body);
-  const { name, about, avatar } = req.body;
-  return User.create({ name, about, avatar })
-    .then((r) => {
-      res.status(201).send(r);
-    })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        return res.status(400).send({ message: 'Неверные данные' });
-      }
-      return res.status(500).send('Server Error');
+  const { name, about, avatar, email, password } = req.body;
+
+  bcrypt.hash(password, 10)
+    .then((hash) => {
+      return User.create({ name, about, avatar, email, password: hash })
+        .then((user) => {
+          res.status(201).send({
+            _id: user._id,
+            email: user.email,
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          if (err instanceof mongoose.Error.ValidationError) {
+            return res.status(400).send({ message: 'Неверные данные' });
+          }
+          if (err.code === 11000) {
+            return res.send({ message: 'Пользователь с таким Email уже зарегистрирован' });
+          }
+          return res.status(500).send('Server Error');
+        });
     });
 };
 
@@ -77,10 +91,49 @@ const updateAvatar = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        return res.status(403).send({ message: 'Такого пользователя не существует' });
+      }
+
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return res.status(401).send({ message: 'Неверные данные' });
+          }
+          const token = jwt.sign({ _id: user._id }, 'secret-code');
+          res.cookie('jwt', token, {
+            httpOnly: true,
+          });
+          return res.send({ token });
+        });
+    })
+    .catch((err) => {
+      res.status(500).send({ message: 'Server Error' });
+    });
+};
+
+const getUserInfo = (req, res) => {
+  return User.findById({ _id: req.user._id })
+    .then((user) => {
+      return res.status(200).send(user);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send({ message: 'Server Error' });
+    });
+}
+
 module.exports = {
   getUsers,
   getUserById,
   createUser,
   updateUserInfo,
   updateAvatar,
+  login,
+  getUserInfo,
 };
