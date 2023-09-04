@@ -8,16 +8,19 @@ const {
 
 userRouter.post('/signin', celebrate({
   body: Joi.object().keys({
-    email: Joi.string().required(),
+    email: Joi.string().required()
+      .pattern(/(https?:\/\/)(w{3}\.)?(((\d{1,3}\.){3}\d{1,3})|((\w-?)+\.(ru|com|mail|gmail)))(:\d{2,5})?((\/.+)+)?\/?#?/),
     password: Joi.string().required().min(8),
   }),
 }), login);
 userRouter.post('/signup', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    about: Joi.string().required().min(2).max(30),
-    avatar: Joi.string(),
-    email: Joi.string().required(),
+    name: Joi.string().default('Жак-Ив-Кусто').min(2).max(30),
+    about: Joi.string().default('Исследователь').min(2).max(30),
+    avatar: Joi.string().default('https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png')
+      .pattern(/^(http|https):\/\/(www\.)?[a-zA-Z0-9\--._~:/?#[\]@!$&'()*+,;=]+#?$/),
+    email: Joi.string().required()
+      .pattern(/(https?:\/\/)(w{3}\.)?(((\d{1,3}\.){3}\d{1,3})|((\w-?)+\.(ru|com|mail|gmail)))(:\d{2,5})?((\/.+)+)?\/?#?/),
     password: Joi.string().required().min(8),
   }),
 }), createUser);
@@ -26,18 +29,20 @@ userRouter.get('/users/me', getUserInfo);
 userRouter.get('/users', getUsers);
 userRouter.get('/users/:userId', celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().required,
+    userId: Joi.string().required(),
   }),
 }), getUserById);
 userRouter.patch('/users/me', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().default('Жак-Ив-Кусто').min(2).max(30),
-    about: Joi.string().required().default('Исследователь').min(2).max(30),
+    name: Joi.string().required().min(2)
+      .max(30),
+    about: Joi.string().required().min(2)
+      .max(30),
   }),
 }), updateUserInfo);
 userRouter.patch('/users/me/avatar', celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required(),
+    avatar: Joi.string().required().pattern(/^(http|https):\/\/(www\.)?[a-zA-Z0-9\--._~:/?#[\]@!$&'()*+,;=]+#?$/),
   }),
 }), updateAvatar);
 

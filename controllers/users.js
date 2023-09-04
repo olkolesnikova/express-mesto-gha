@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const NotFoundError = require('../errors/not-found-error');
 const InvalidDataError = require('../errors/invalid-data-error');
 const ExistingDataError = require('../errors/existing-data-error');
+const UnauthorizedError = require('../errors/unauthorized-error');
 
 const User = require('../models/user');
 
@@ -50,8 +51,11 @@ const createUser = (req, res, next) => {
       })
         .then((user) => {
           res.status(201).send({
-            _id: user._id,
+            name: user.name,
+            about: user.about,
+            avatar: user.avatar,
             email: user.email,
+            password: user.password,
           });
         })
         .catch((err) => {
@@ -110,7 +114,7 @@ const login = (req, res, next) => {
   return User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Такого пользователя не существует');
+        throw new UnauthorizedError('Такого пользователя не существует');
       }
 
       return bcrypt.compare(password, user.password)
