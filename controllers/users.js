@@ -11,33 +11,29 @@ const UnauthorizedError = require('../errors/unauthorized-error');
 
 const User = require('../models/user');
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   return User.find({})
-    .then((r) => {
-      return res.status(200).send(r);
+    .then((user) => {
+      return res.send(user);
     })
-    .catch(() => {
-      return res.status(500).send({ message: 'Server Error' });
-    });
+    .catch(next);
 };
 
 const getUserById = (req, res, next) => {
   const { userId } = req.params;
   return User.findById(userId)
-    .orFail()
+    .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => {
-      return res.status(200).send(user);
+      return res.send(user);
     })
     .catch((err) => {
       console.log(err);
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        throw new NotFoundError('Карточка не найдена');
-      } else if (err instanceof mongoose.Error.CastError) {
-        throw new InvalidDataError('Неверные данные');
+      if (err instanceof mongoose.Error.CastError) {
+        next(new InvalidDataError('Неверные данные'));
+      } else {
+        next(err);
       }
-      return res.status(500).send({ message: 'Server Error' });
-    })
-    .catch(next);
+    });
 };
 
 const createUser = (req, res, next) => {
@@ -52,7 +48,7 @@ const createUser = (req, res, next) => {
         name, about, avatar, email, password: hash,
       })
         .then((user) => {
-          res.status(201).send({
+          res.send({
             name: user.name,
             about: user.about,
             avatar: user.avatar,
@@ -62,15 +58,16 @@ const createUser = (req, res, next) => {
         .catch((err) => {
           console.log(err);
           if (err instanceof mongoose.Error.ValidationError) {
-            throw new InvalidDataError('Неверные данные');
+            next(new InvalidDataError('Неверные данные'));
           }
           if (err.code === 11000) {
-            throw new ExistingDataError('Пользователь с таким Email уже зарегистрирован');
+            next(new ExistingDataError('Пользователь с таким Email уже зарегистрирован'));
+          } else {
+            next(err);
           }
-          return res.status(500).send('Server Error');
-        })
-        .catch(next);
-    });
+        });
+    })
+    .catch(next);
 };
 
 const updateUserInfo = (req, res, next) => {
@@ -79,16 +76,16 @@ const updateUserInfo = (req, res, next) => {
     new: true,
     runValidators: true,
   })
-    .then((r) => {
-      res.status(200).send(r);
+    .then((user) => {
+      res.send(user);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        throw new InvalidDataError('Неверные данные');
+        next(new InvalidDataError('Неверные данные'));
+      } else {
+        next(err);
       }
-      return res.status(500).send('Server Error');
-    })
-    .catch(next);
+    });
 };
 
 const updateAvatar = (req, res, next) => {
@@ -97,16 +94,16 @@ const updateAvatar = (req, res, next) => {
     new: true,
     runValidators: true,
   })
-    .then((r) => {
-      res.status(200).send(r);
+    .then((data) => {
+      res.send(data);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        throw new InvalidDataError('Неверные данные');
+        next(new InvalidDataError('Неверные данные'));
+      } else {
+        next(err);
       }
-      return res.status(500).send({ message: 'Server Error' });
-    })
-    .catch(next);
+    });
 };
 
 const login = (req, res, next) => {
@@ -121,7 +118,7 @@ const login = (req, res, next) => {
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            throw new InvalidDataError('Неверные данные');
+            throw new UnauthorizedError('Неверные данные');
           }
           const token = jwt.sign({ _id: user._id }, 'secret-code');
           res.cookie('jwt', token, {
