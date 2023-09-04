@@ -8,17 +8,17 @@ const {
 
 userRouter.post('/signin', celebrate({
   body: Joi.object().keys({
-    email: Joi.string().required(),
+    email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
   }),
 }), login);
 userRouter.post('/signup', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().default('Жак-Ив-Кусто').min(2).max(30),
+    name: Joi.string().default('Жак-Ив Кусто').min(2).max(30),
     about: Joi.string().default('Исследователь').min(2).max(30),
     avatar: Joi.string().default('https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png')
       .pattern(/^(http|https):\/\/(www\.)?[a-zA-Z0-9\--._~:/?#[\]@!$&'()*+,;=]+#?$/),
-    email: Joi.string().required(),
+    email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
   }),
 }), createUser);
