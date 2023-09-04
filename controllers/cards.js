@@ -34,7 +34,7 @@ const createCard = (req, res, next) => {
 const deleteCardById = (req, res, next) => {
   const { cardId } = req.params;
   return Card.findByIdAndDelete(cardId)
-    .orFail(new Error('Неверный id'))
+    .orFail()
     .then((card) => {
       if (!card.owner.equals(req.user._id)) {
         return res.status(403).send({ message: 'Нельзя удалять карточки других пользователей' });
@@ -43,8 +43,10 @@ const deleteCardById = (req, res, next) => {
     })
     .catch((err) => {
       console.log(err);
-      if (err instanceof mongoose.Error.CastError) {
-        throw new InvalidDataError('Неверный id');
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        throw new NotFoundError('Карточка не найдена');
+      } else if (err instanceof mongoose.Error.CastError) {
+        throw new InvalidDataError('Неверные данные');
       }
       return res.status(500).send({ message: 'Server Error' });
     })
@@ -84,18 +86,21 @@ const dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    .orFail()
     .then((card) => {
-      if (!card) {
+      /* if (!card) {
         throw new NotFoundError('Карточка не найдена');
-      }
+      } */
       return res.status(200).send(card);
     })
     .catch((err) => {
       console.log(err);
-      if (err instanceof mongoose.Error.CastError) {
-        return res.status(400).send({ message: 'Неверный id' });
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        throw new NotFoundError('Карточка не найдена');
+      } else if (err instanceof mongoose.Error.CastError) {
+        throw new InvalidDataError('Неверные данные');
       }
-      throw new InvalidDataError('Неверный id');
+      return res.status(500).send({ message: 'Server Error' });
     })
     .catch(next);
 };
