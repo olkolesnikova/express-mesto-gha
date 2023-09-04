@@ -58,16 +58,19 @@ const likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    .orFail()
     .then((card) => {
-      if (!card) {
+      /* if (!card) {
         throw new NotFoundError('Карточка не найдена');
-      }
+      } */
       return res.status(200).send(card);
     })
     .catch((err) => {
       console.log(err);
-      if (err instanceof mongoose.Error.CastError) {
-        throw new InvalidDataError('Неверный id');
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        throw new NotFoundError('Карточка не найдена');
+      } else if (err instanceof mongoose.Error.CastError) {
+        throw new InvalidDataError('Неверные данные');
       }
       return res.status(500).send({ message: 'Server Error' });
     })

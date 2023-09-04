@@ -24,14 +24,16 @@ const getUsers = (req, res) => {
 const getUserById = (req, res, next) => {
   const { userId } = req.params;
   return User.findById(userId)
-    .orFail(new Error('Неверный Id'))
+    .orFail()
     .then((user) => {
       return res.status(200).send(user);
     })
     .catch((err) => {
       console.log(err);
-      if (err instanceof mongoose.Error.CastError) {
-        throw new InvalidDataError('Неверный id');
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        throw new NotFoundError('Карточка не найдена');
+      } else if (err instanceof mongoose.Error.CastError) {
+        throw new InvalidDataError('Неверные данные');
       }
       return res.status(500).send({ message: 'Server Error' });
     })
@@ -55,7 +57,6 @@ const createUser = (req, res, next) => {
             about: user.about,
             avatar: user.avatar,
             email: user.email,
-            password: user.password,
           });
         })
         .catch((err) => {
