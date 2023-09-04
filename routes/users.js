@@ -20,7 +20,7 @@ userRouter.post('/signup', celebrate({
     avatar: Joi.string().default('https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png')
       .pattern(/^(http|https):\/\/(www\.)?[a-zA-Z0-9\--._~:/?#[\]@!$&'()*+,;=]+#?$/),
     email: Joi.string().required()
-      .pattern(/(https?:\/\/)(w{3}\.)?(((\d{1,3}\.){3}\d{1,3})|((\w-?)+\.(ru|com|mail|gmail)))(:\d{2,5})?((\/.+)+)?\/?#?/),
+      .pattern(/(((\d{1,3}\.){3}\d{1,3})|((\w-?)+\.(ru|com|mail|gmail)))(:\d{2,5})?((\/.+)+)?\/?#?/),
     password: Joi.string().required().min(8),
   }),
 }), createUser);

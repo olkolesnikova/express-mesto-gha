@@ -3,10 +3,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const helmet = require('helmet');
+// eslint-disable-next-line import/no-extraneous-dependencies
 const cookieParser = require('cookie-parser');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { errors } = require('celebrate');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
-const { errors } = require('celebrate');
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useNewUrlParser: true,
@@ -31,6 +33,7 @@ app.patch('*', (req, res) => {
 
 app.use(errors());
 
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
 
