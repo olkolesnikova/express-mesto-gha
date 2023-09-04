@@ -62,14 +62,13 @@ const likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(new NotFoundError('Карточка не найдена'))
     .then((card) => {
       return res.send(card);
     })
     .catch((err) => {
       console.log(err);
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        next(new NotFoundError('Карточка не найдена'));
-      } else if (err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.CastError) {
         next(new InvalidDataError('Неверные данные'));
       } else {
         next(err);
@@ -84,14 +83,13 @@ const dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(new NotFoundError('Карточка не найдена'))
     .then((card) => {
       return res.send(card);
     })
     .catch((err) => {
       console.log(err);
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        next(new NotFoundError('Карточка не найдена'));
-      } else if (err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.CastError) {
         next(new InvalidDataError('Неверные данные'));
       } else {
         next(err);
